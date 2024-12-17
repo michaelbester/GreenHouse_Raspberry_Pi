@@ -1,14 +1,12 @@
 # This Python file uses the following encoding: utf-8
 import sys
 import json
-from datetime import datetime
-
+from datetime import datetime, timedelta
+import requests
+import pyqtgraph as pg
 from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtCore import QTimer
 
-# Important:
-# You need to run the following command to generate the ui_form.py file
-#     pyside6-uic form.ui -o ui_form.py, or
-#     pyside2-uic form.ui -o ui_form.py
 from ui_form import Ui_Widget
 
 class GreenHouse(QWidget):
@@ -16,7 +14,9 @@ class GreenHouse(QWidget):
         super().__init__(parent)
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
-
+        self.chart_x_data = []
+        self.chart_outside_data = []
+        self.chart_inside_data = []
         self.settings = {}
 
         self.ui.water_zone_1_control_pushButton.clicked.connect(self.water_zone_1_clicked)
@@ -27,6 +27,23 @@ class GreenHouse(QWidget):
         self.read_settings()
         self.init_screen_info()
         self.ui.fan_control_pushButton.clicked.connect(self.fan_clicked)
+
+        self.ui.zone1_mon_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_1_mon"))
+        self.ui.zone1_tues_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_1_tues"))
+        self.ui.zone1_wed_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_1_wed"))
+        self.ui.zone1_thurs_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_1_thurs"))
+        self.ui.zone1_fri_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_1_fri"))
+        self.ui.zone1_sat_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_1_sat"))
+        self.ui.zone1_sun_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_1_sun"))
+
+        self.ui.zone2_mon_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_2_mon"))
+        self.ui.zone2_tues_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_2_tues"))
+        self.ui.zone2_wed_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_2_wed"))
+        self.ui.zone2_thurs_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_2_thurs"))
+        self.ui.zone2_fri_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_2_fri"))
+        self.ui.zone2_sat_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_2_sat"))
+        self.ui.zone2_sun_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_2_sun"))
+
 
         self.center_window();
 
@@ -44,35 +61,155 @@ class GreenHouse(QWidget):
             # Move the window to the center
             self.move(center_x, center_y)
 
+    def update_graph(self, temp):
+        size_x = len(self.chart_x_data)
+        self.chart_outside_data.append(temp)
+
+        self.chart_x_data.append(size_x * 5)
+
+        if(size_x >= 125):
+            self.chart_x_data.pop(0)
+            self.chart_outside_data.pop(0)
+
+        self.ui.chart_graphicsView.plot(self.chart_x_data, self.chart_outside_data, pen=pg.mkPen('r', width=4),name="outside")
+        #self.ui.chart_graphicsView.plot(self.chart_x_data, self.chart_inside_data, pen="blue", name="inside")
+        self.ui.min_outdoor_temp_label.setStyleSheet("color: red;")
+        self.ui.max_outdoor_temp_label.setStyleSheet("color: red;")
+        self.ui.min_outdoor_temp_val_label.setStyleSheet("color: red;")
+        self.ui.max_outdoor_temp_val_label.setStyleSheet("color: red;")
+        self.ui.min_outdoor_temp_val_label.setText(str(round(min(self.chart_outside_data))) + "F")
+        self.ui.max_outdoor_temp_val_label.setText(str(round(max(self.chart_outside_data))) + "F")
+
+    def get_weather(self):
+        url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid=ce1c9c671cdba754b71c0526e8667ff3&units=imperial'.format("Pickens")
+        res = requests.get(url)
+        data = res.json()
+        temp = data['main']['temp']
+        self.ui.outside_temp_val_label.setText(str(round(temp)) + "F")
+        print("Temperature at " + str(datetime.now()))
+        print(temp)
+        self.update_graph(temp)
+
     def water_zone_1_clicked(self):
-        if self.ui.water_zone_1_control_pushButton.text() == "ON":
-            self.ui.water_zone_1_control_pushButton.setText("OFF")
+        if self.ui.water_zone_1_control_pushButton.text() == "TURN OFF":
+            self.ui.water_zone_1_control_pushButton.setText("TURN ON")
+            self.ui.water_zone_1_val_label.setText("OFF")
+            controls_zone1_update_timer.start(1000 * 60 * 1)
         else:
-            self.ui.water_zone_1_control_pushButton.setText("ON")
+            self.ui.water_zone_1_control_pushButton.setText("TURN OFF")
+            self.ui.water_zone_1_val_label.setText("ON")
+            #turn on water
+            controls_zone1_update_timer.stop()
 
     def water_zone_2_clicked(self):
-        if self.ui.water_zone_2_control_pushButton.text() == "ON":
-            self.ui.water_zone_2_control_pushButton.setText("OFF")
+        if self.ui.water_zone_2_control_pushButton.text() == "TURN OFF":
+            self.ui.water_zone_2_control_pushButton.setText("TURN ON")
+            self.ui.water_zone_2_val_label.setText("OFF")
+            controls_zone2_update_timer.start(1000 * 60 * 1)
         else:
-            self.ui.water_zone_2_control_pushButton.setText("ON")
+            self.ui.water_zone_2_control_pushButton.setText("TURN OFF")
+            self.ui.water_zone_2_val_label.setText("ON")
+            controls_zone1_update_timer.stop
 
     def fan_clicked(self):
-        if self.ui.fan_control_pushButton.text() == "ON":
-            self.ui.fan_control_pushButton.setText("OFF")
+        if self.ui.fan_control_pushButton.text() == "TURN OFF":
+            self.ui.fan_control_pushButton.setText("TURN ON")
+            self.ui.fan_status_on_off.setText("OFF")
         else:
-            self.ui.fan_control_pushButton.setText("ON")
+            self.ui.fan_control_pushButton.setText("TURN OFF")
+            self.ui.fan_status_on_off.setText("ON")
 
+
+    def zone1_en_clicked(self, name):
+        match name:
+            case "zone_1_mon":
+                if  self.ui.zone1_mon_pushButton.isChecked():
+                    self.ui.zone1_mon_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone1_mon_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_1_tues":
+                if  self.ui.zone1_tues_pushButton.isChecked():
+                    self.ui.zone1_tues_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone1_tues_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_1_wed":
+                if  self.ui.zone1_wed_pushButton.isChecked():
+                    self.ui.zone1_wed_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone1_wed_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_1_thurs":
+                if  self.ui.zone1_thurs_pushButton.isChecked():
+                    self.ui.zone1_thurs_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone1_thurs_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_1_fri":
+                if  self.ui.zone1_fri_pushButton.isChecked():
+                    self.ui.zone1_fri_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone1_fri_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_1_sat":
+                if  self.ui.zone1_sat_pushButton.isChecked():
+                    self.ui.zone1_sat_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone1_sat_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_1_sun":
+                if  self.ui.zone1_sun_pushButton.isChecked():
+                    self.ui.zone1_sun_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone1_sun_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_2_mon":
+                if  self.ui.zone2_mon_pushButton.isChecked():
+                    self.ui.zone2_mon_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone2_mon_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_2_tues":
+                if  self.ui.zone2_tues_pushButton.isChecked():
+                    self.ui.zone2_tues_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone2_tues_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_2_wed":
+                if  self.ui.zone2_wed_pushButton.isChecked():
+                    self.ui.zone2_wed_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone2_wed_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_2_thurs":
+                if  self.ui.zone2_thurs_pushButton.isChecked():
+                    self.ui.zone2_thurs_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone2_thurs_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_2_fri":
+                if  self.ui.zone2_fri_pushButton.isChecked():
+                    self.ui.zone2_fri_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone2_fri_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_2_sat":
+                if  self.ui.zone2_sat_pushButton.isChecked():
+                    self.ui.zone2_sat_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone2_sat_pushButton.setStyleSheet("color: gray;")
+
+            case "zone_2_sun":
+                if  self.ui.zone2_sun_pushButton.isChecked():
+                    self.ui.zone2_sun_pushButton.setStyleSheet("color: green;")
+                else:
+                    self.ui.zone2_sun_pushButton.setStyleSheet("color: gray;")
     # RESET ALL SETTINGS
     def reset_settings_clicked(self):
         self.settings["fan_temp"] = 95
 
-        self.settings["zone_1_monday_time"] = "8:00AM"
-        self.settings["zone_1_tuesday_time"] = "8:00AM"
-        self.settings["zone_1_wednesday_time"] = "8:00AM"
-        self.settings["zone_1_thursday_time"] = "8:00AM"
-        self.settings["zone_1_friday_time"] = "8:00AM"
-        self.settings["zone_1_saturday_time"] = "8:00AM"
-        self.settings["zone_1_sunday_time"] = "8:00AM"
+        self.settings["zone_1_start_time"] = "8:00AM"
 
         self.settings["zone_1_monday_en"] = True
         self.settings["zone_1_tuesday_en"] = True
@@ -82,21 +219,10 @@ class GreenHouse(QWidget):
         self.settings["zone_1_saturday_en"] = True
         self.settings["zone_1_sunday_en"] = True
 
-        self.settings["zone_1_monday_duration"] = 30
-        self.settings["zone_1_tuesday_duration"] = 30
-        self.settings["zone_1_wednesday_duration"] = 30
-        self.settings["zone_1_thursday_duration"] = 30
-        self.settings["zone_1_friday_duration"] = 30
-        self.settings["zone_1_saturday_duration"] = 30
-        self.settings["zone_1_sunday_duration"] = 30
+        self.settings["zone_1_duration"] = 30
 
-        self.settings["zone_2_monday_time"] = "8:00AM"
-        self.settings["zone_2_tuesday_time"] = "8:00AM"
-        self.settings["zone_2_wednesday_time"] = "8:00AM"
-        self.settings["zone_2_thursday_time"] = "8:00AM"
-        self.settings["zone_2_friday_time"] = "8:00AM"
-        self.settings["zone_2_saturday_time"] = "8:00AM"
-        self.settings["zone_2_sunday_time"] = "8:00AM"
+
+        self.settings["zone_2_start_time"] = "8:00AM"
 
         self.settings["zone_2_monday_en"] = False
         self.settings["zone_2_tuesday_en"] = False
@@ -106,13 +232,7 @@ class GreenHouse(QWidget):
         self.settings["zone_2_saturday_en"] = False
         self.settings["zone_2_sunday_en"] = False
 
-        self.settings["zone_2_monday_duration"] = 30
-        self.settings["zone_2_tuesday_duration"] = 30
-        self.settings["zone_2_wednesday_duration"] = 30
-        self.settings["zone_2_thursday_duration"] = 30
-        self.settings["zone_2_friday_duration"] = 30
-        self.settings["zone_2_saturday_duration"] = 30
-        self.settings["zone_2_sunday_duration"] = 30
+        self.settings["zone_2_duration"] = 30
 
         self.update_settings_file()
         self.init_screen_info()
@@ -121,53 +241,29 @@ class GreenHouse(QWidget):
     def save_settings_clicked(self):
         self.settings["fan_temp"] = int(self.ui.fan_temp_setting_label.text()[:-1])
 
-        self.settings["zone_1_monday_time"] = self.ui.monday_timeEdit.time().toString('h:mmAP')
-        self.settings["zone_1_tuesday_time"] = self.ui.tuesday_timeEdit.time().toString('h:mmAP')
-        self.settings["zone_1_wednesday_time"] = self.ui.wednesday_timeEdit.time().toString('h:mmAP')
-        self.settings["zone_1_thursday_time"] = self.ui.thursday_timeEdit.time().toString('h:mmAP')
-        self.settings["zone_1_friday_time"] = self.ui.friday_timeEdit.time().toString('h:mmAP')
-        self.settings["zone_1_saturday_time"] = self.ui.saturday_timeEdit.time().toString('h:mmAP')
-        self.settings["zone_1_sunday_time"] = self.ui.sunday_timeEdit.time().toString('h:mmAP')
+        self.settings["zone_1_start_time"] = self.ui.start_time_zone_1_val.time().toString('h:mmAP')
 
-        self.settings["zone_1_monday_en"] = self.ui.monday_enable_1_checkbox.isChecked()
-        self.settings["zone_1_tuesday_en"] = self.ui.tuesday_enable_1_checkbox.isChecked()
-        self.settings["zone_1_wednesday_en"] = self.ui.wednesday_enable_1_checkbox.isChecked()
-        self.settings["zone_1_thursday_en"] = self.ui.thursday_enable_1_checkbox.isChecked()
-        self.settings["zone_1_friday_en"] = self.ui.friday_enable_1_checkbox.isChecked()
-        self.settings["zone_1_saturday_en"] = self.ui.saturday_enable_1_checkbox.isChecked()
-        self.settings["zone_1_sunday_en"] = self.ui.sunday_enable_1_checkbox.isChecked()
+        self.settings["zone_1_monday_en"] = self.ui.zone1_mon_pushButton.isChecked()
+        self.settings["zone_1_tuesday_en"] = self.ui.zone1_tues_pushButton.isChecked()
+        self.settings["zone_1_wednesday_en"] = self.ui.zone1_wed_pushButton.isChecked()
+        self.settings["zone_1_thursday_en"] = self.ui.zone1_thurs_pushButton.isChecked()
+        self.settings["zone_1_friday_en"] = self.ui.zone1_fri_pushButton.isChecked()
+        self.settings["zone_1_saturday_en"] = self.ui.zone1_sat_pushButton.isChecked()
+        self.settings["zone_1_sunday_en"] = self.ui.zone1_sun_pushButton.isChecked()
 
-        self.settings["zone_1_monday_duration"] = self.ui.monday_duration_1_spinBox.value()
-        self.settings["zone_1_tuesday_duration"] = self.ui.tuesday_duration_1_spinBox.value()
-        self.settings["zone_1_wednesday_duration"] = self.ui.wednesday_duration_1_spinBox.value()
-        self.settings["zone_1_thursday_duration"] = self.ui.thursday_duration_1_spinBox.value()
-        self.settings["zone_1_friday_duration"] = self.ui.friday_duration_1_spinBox.value()
-        self.settings["zone_1_saturday_duration"] = self.ui.saturday_duration_1_spinBox.value()
-        self.settings["zone_1_sunday_duration"] = self.ui.sunday_duration_1_spinBox.value()
+        self.settings["zone_1_duration"] = self.ui.duration_zone_1_val.value()
 
-        self.settings["zone_2_monday_time"] = self.ui.monday_timeEdit_2.time().toString('h:mmAP')
-        self.settings["zone_2_tuesday_time"] = self.ui.tuesday_timeEdit_2.time().toString('h:mmAP')
-        self.settings["zone_2_wednesday_time"] = self.ui.wednesday_timeEdit_2.time().toString('h:mmAP')
-        self.settings["zone_2_thursday_time"] = self.ui.thursday_timeEdit_2.time().toString('h:mmAP')
-        self.settings["zone_2_friday_time"] = self.ui.friday_timeEdit_2.time().toString('h:mmAP')
-        self.settings["zone_2_saturday_time"] = self.ui.saturday_timeEdit_2.time().toString('h:mmAP')
-        self.settings["zone_2_sunday_time"] = self.ui.sunday_timeEdit_2.time().toString('h:mmAP')
+        self.settings["zone_2_start_time"] = self.ui.start_time_zone_2_val.time().toString('h:mmAP')
 
-        self.settings["zone_2_monday_en"] = self.ui.monday_enable_2_checkbox.isChecked()
-        self.settings["zone_2_tuesday_en"] = self.ui.tuesday_enable_2_checkbox.isChecked()
-        self.settings["zone_2_wednesday_en"] = self.ui.wednesday_enable_2_checkbox.isChecked()
-        self.settings["zone_2_thursday_en"] = self.ui.thursday_enable_2_checkbox.isChecked()
-        self.settings["zone_2_friday_en"] = self.ui.friday_enable_2_checkbox.isChecked()
-        self.settings["zone_2_saturday_en"] = self.ui.saturday_enable_2_checkbox.isChecked()
-        self.settings["zone_2_sunday_en"] = self.ui.sunday_enable_2_checkbox.isChecked()
+        self.settings["zone_2_monday_en"] = self.ui.zone2_mon_pushButton.isChecked()
+        self.settings["zone_2_tuesday_en"] = self.ui.zone2_tues_pushButton.isChecked()
+        self.settings["zone_2_wednesday_en"] = self.ui.zone2_wed_pushButton.isChecked()
+        self.settings["zone_2_thursday_en"] = self.ui.zone2_thurs_pushButton.isChecked()
+        self.settings["zone_2_friday_en"] = self.ui.zone2_fri_pushButton.isChecked()
+        self.settings["zone_2_saturday_en"] = self.ui.zone2_sat_pushButton.isChecked()
+        self.settings["zone_2_sunday_en"] = self.ui.zone2_sun_pushButton.isChecked()
 
-        self.settings["zone_2_monday_duration"] = self.ui.monday_duration_2_spinBox.value()
-        self.settings["zone_2_tuesday_duration"] = self.ui.tuesday_duration_2_spinBox.value()
-        self.settings["zone_2_wednesday_duration"] = self.ui.wednesday_duration_2_spinBox.value()
-        self.settings["zone_2_thursday_duration"] = self.ui.thursday_duration_2_spinBox.value()
-        self.settings["zone_2_friday_duration"] = self.ui.friday_duration_2_spinBox.value()
-        self.settings["zone_2_saturday_duration"] = self.ui.saturday_duration_2_spinBox.value()
-        self.settings["zone_2_sunday_duration"] = self.ui.sunday_duration_2_spinBox.value()
+        self.settings["zone_2_duration"] = self.ui.duration_zone_2_val.value()
 
         self.update_settings_file()
 
@@ -185,150 +281,308 @@ class GreenHouse(QWidget):
         temp = str(self.settings["fan_temp"]) + "F"
         self.ui.fan_temp_setting_label.setText(temp)
 
-        start_time = self.settings["zone_1_monday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.monday_timeEdit.setTime(time_object)
+        zone_1_start_time = self.settings["zone_1_start_time"]
+        time_object = datetime.strptime(zone_1_start_time, time_format).time()
+        self.ui.start_time_zone_1_val.setTime(time_object)
 
-        start_time = self.settings["zone_1_tuesday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.tuesday_timeEdit.setTime(time_object)
-
-        start_time = self.settings["zone_1_wednesday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.wednesday_timeEdit.setTime(time_object)
-
-        start_time = self.settings["zone_1_thursday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.thursday_timeEdit.setTime(time_object)
-
-        start_time = self.settings["zone_1_friday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.friday_timeEdit.setTime(time_object)
-
-        start_time = self.settings["zone_1_saturday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.saturday_timeEdit.setTime(time_object)
-
-        start_time = self.settings["zone_1_sunday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.sunday_timeEdit.setTime(time_object)
-
-        duration = self.settings["zone_1_monday_duration"]
-        self.ui.monday_duration_1_spinBox.setValue(duration)
-
-        duration = self.settings["zone_1_tuesday_duration"]
-        self.ui.tuesday_duration_1_spinBox.setValue(duration)
-
-        duration = self.settings["zone_1_wednesday_duration"]
-        self.ui.wednesday_duration_1_spinBox.setValue(duration)
-
-        duration = self.settings["zone_1_thursday_duration"]
-        self.ui.thursday_duration_1_spinBox.setValue(duration)
-
-        duration = self.settings["zone_1_friday_duration"]
-        self.ui.friday_duration_1_spinBox.setValue(duration)
-
-        duration = self.settings["zone_1_saturday_duration"]
-        self.ui.saturday_duration_1_spinBox.setValue(duration)
-
-        duration = self.settings["zone_1_sunday_duration"]
-        self.ui.sunday_duration_1_spinBox.setValue(duration)
+        duration = self.settings["zone_1_duration"]
+        self.ui.duration_zone_1_val.setValue(duration)
 
         en = self.settings["zone_1_monday_en"]
-        self.ui.monday_enable_1_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone1_mon_pushButton.setStyleSheet("color: green;")
+            self.ui.zone1_mon_pushButton.setChecked(True)
+        else:
+            self.ui.zone1_mon_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone1_mon_pushButton.setChecked(False)
 
         en = self.settings["zone_1_tuesday_en"]
-        self.ui.tuesday_enable_1_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone1_tues_pushButton.setStyleSheet("color: green;")
+            self.ui.zone1_tues_pushButton.setChecked(True)
+        else:
+            self.ui.zone1_tues_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone1_tues_pushButton.setChecked(False)
 
         en = self.settings["zone_1_wednesday_en"]
-        self.ui.wednesday_enable_1_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone1_wed_pushButton.setStyleSheet("color: green;")
+            self.ui.zone1_wed_pushButton.setChecked(True)
+        else:
+            self.ui.zone1_wed_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone1_wed_pushButton.setChecked(False)
 
         en = self.settings["zone_1_thursday_en"]
-        self.ui.thursday_enable_1_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone1_thurs_pushButton.setStyleSheet("color: green;")
+            self.ui.zone1_thurs_pushButton.setChecked(True)
+        else:
+            self.ui.zone1_thurs_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone1_thurs_pushButton.setChecked(False)
 
         en = self.settings["zone_1_friday_en"]
-        self.ui.friday_enable_1_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone1_fri_pushButton.setStyleSheet("color: green;")
+            self.ui.zone1_fri_pushButton.setChecked(True)
+        else:
+            self.ui.zone1_fri_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone1_fri_pushButton.setChecked(False)
 
         en = self.settings["zone_1_saturday_en"]
-        self.ui.saturday_enable_1_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone1_sat_pushButton.setStyleSheet("color: green;")
+            self.ui.zone1_sat_pushButton.setChecked(True)
+        else:
+            self.ui.zone1_sat_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone1_sat_pushButton.setChecked(False)
 
         en = self.settings["zone_1_sunday_en"]
-        self.ui.sunday_enable_1_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone1_sun_pushButton.setStyleSheet("color: green;")
+            self.ui.zone1_sun_pushButton.setChecked(True)
+        else:
+            self.ui.zone1_sun_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone1_sun_pushButton.setChecked(False)
 
-        start_time = self.settings["zone_2_monday_time"]
+        start_time = self.settings["zone_2_start_time"]
         time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.monday_timeEdit_2.setTime(time_object)
+        self.ui.start_time_zone_2_val.setTime(time_object)
 
-        start_time = self.settings["zone_2_tuesday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.tuesday_timeEdit_2.setTime(time_object)
-
-        start_time = self.settings["zone_2_wednesday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.wednesday_timeEdit_2.setTime(time_object)
-
-        start_time = self.settings["zone_2_thursday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.thursday_timeEdit_2.setTime(time_object)
-
-        start_time = self.settings["zone_2_friday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.friday_timeEdit_2.setTime(time_object)
-
-        start_time = self.settings["zone_2_saturday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.saturday_timeEdit_2.setTime(time_object)
-
-        start_time = self.settings["zone_2_sunday_time"]
-        time_object = datetime.strptime(start_time, time_format).time()
-        self.ui.sunday_timeEdit_2.setTime(time_object)
-
-        duration = self.settings["zone_2_monday_duration"]
-        self.ui.monday_duration_2_spinBox.setValue(duration)
-
-        duration = self.settings["zone_2_tuesday_duration"]
-        self.ui.tuesday_duration_2_spinBox.setValue(duration)
-
-        duration = self.settings["zone_2_wednesday_duration"]
-        self.ui.wednesday_duration_2_spinBox.setValue(duration)
-
-        duration = self.settings["zone_2_thursday_duration"]
-        self.ui.thursday_duration_2_spinBox.setValue(duration)
-
-        duration = self.settings["zone_2_friday_duration"]
-        self.ui.friday_duration_2_spinBox.setValue(duration)
-
-        duration = self.settings["zone_2_saturday_duration"]
-        self.ui.saturday_duration_2_spinBox.setValue(duration)
-
-        duration = self.settings["zone_2_sunday_duration"]
-        self.ui.sunday_duration_2_spinBox.setValue(duration)
+        duration = self.settings["zone_2_duration"]
+        self.ui.duration_zone_2_val.setValue(duration)
 
         en = self.settings["zone_2_monday_en"]
-        self.ui.monday_enable_2_checkbox.setChecked(en)
+
+        if(en):
+            self.ui.zone2_mon_pushButton.setStyleSheet("color: green;")
+            self.ui.zone2_mon_pushButton.setChecked(True)
+        else:
+            self.ui.zone2_mon_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone2_mon_pushButton.setChecked(False)
 
         en = self.settings["zone_2_tuesday_en"]
-        self.ui.tuesday_enable_2_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone2_tues_pushButton.setStyleSheet("color: green;")
+            self.ui.zone2_tues_pushButton.setChecked(True)
+        else:
+            self.ui.zone2_tues_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone2_tues_pushButton.setChecked(False)
 
         en = self.settings["zone_2_wednesday_en"]
-        self.ui.wednesday_enable_2_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone2_wed_pushButton.setStyleSheet("color: green;")
+            self.ui.zone2_wed_pushButton.setChecked(True)
+        else:
+            self.ui.zone2_wed_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone2_wed_pushButton.setChecked(True)
 
         en = self.settings["zone_2_thursday_en"]
-        self.ui.thursday_enable_2_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone2_thurs_pushButton.setStyleSheet("color: green;")
+            self.ui.zone2_thurs_pushButton.setChecked(True)
+        else:
+            self.ui.zone2_thurs_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone2_thurs_pushButton.setChecked(False)
 
         en = self.settings["zone_2_friday_en"]
-        self.ui.friday_enable_2_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone2_fri_pushButton.setStyleSheet("color: green;")
+            self.ui.zone2_fri_pushButton.setChecked(True)
+        else:
+            self.ui.zone2_fri_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone2_fri_pushButton.setChecked(False)
 
         en = self.settings["zone_2_saturday_en"]
-        self.ui.saturday_enable_2_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone2_sat_pushButton.setStyleSheet("color: green;")
+            self.ui.zone2_sat_pushButton.setChecked(True)
+        else:
+            self.ui.zone2_sat_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone2_sat_pushButton.setChecked(False)
 
         en = self.settings["zone_2_sunday_en"]
-        self.ui.sunday_enable_2_checkbox.setChecked(en)
+        if(en):
+            self.ui.zone2_sun_pushButton.setStyleSheet("color: green;")
+            self.ui.zone2_sun_pushButton.setChecked(True)
+        else:
+            self.ui.zone2_sun_pushButton.setStyleSheet("color: gray;")
+            self.ui.zone2_sun_pushButton.setChecked(False)
+
+    def update_zone_1_controls(self):
+        start_time = self.settings["zone_1_start_time"]
+        duration = self.settings["zone_1_duration"]
+        current_date = datetime.now()
+        day_of_week = current_date.strftime('%A')
+        time_of_day = current_date.strftime('%I:%M%p')
+        match day_of_week:
+            case "Monday":
+                if self.ui.zone1_mon_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_1_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_1_val_label.setText("OFF")
+
+            case "Tuesday":
+                if self.ui.zone1_tues_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_1_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_1_val_label.setText("OFF")
+
+            case "Wednesday":
+                if self.ui.zone1_wed_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_1_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_1_val_label.setText("OFF")
+
+            case "Thursday":
+                if self.ui.zone1_thurs_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_1_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_1_val_label.setText("OFF")
+
+            case "Friday":
+                if self.ui.zone1_fri_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_1_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_1_val_label.setText("OFF")
+
+            case "Saturday":
+                if self.ui.zone1_sat_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_1_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_1_val_label.setText("OFF")
+
+            case "Sunday":
+                if self.ui.zone1_sun_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_1_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_1_val_label.setText("OFF")
+
+    def update_zone_2_controls(self):
+        start_time = self.settings["zone_2_start_time"]
+        duration = self.settings["zone_2_duration"]
+        current_date = datetime.now()
+        day_of_week = current_date.strftime('%A')
+        time_of_day = current_date.strftime('%I:%M%p')
+        match day_of_week:
+            case "Monday":
+                if self.ui.zone2_mon_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_2_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_2_val_label.setText("OFF")
+
+            case "Tuesday":
+                if self.ui.zone2_tues_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_2_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_2_val_label.setText("OFF")
+
+            case "Wednesday":
+                if self.ui.zone2_wed_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_2_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_2_val_label.setText("OFF")
+
+            case "Thursday":
+                if self.ui.zone2_thurs_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_2_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_2_val_label.setText("OFF")
+
+            case "Friday":
+                if self.ui.zone2_fri_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_2_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_2_val_label.setText("OFF")
+
+            case "Saturday":
+                if self.ui.zone2_sat_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_2_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_2_val_label.setText("OFF")
+
+            case "Sunday":
+                if self.ui.zone2_sun_pushButton.isChecked() == True:
+                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                        #turn on water
+                        self.ui.water_zone_2_val_label.setText("ON")
+                    else:
+                        #turn off water
+                        self.ui.water_zone_2_val_label.setText("OFF")
+
+    def update_fan_controls(self):
+        pass
+
+    def compare_time_strings(self, time_of_day, start_time, duration):
+        time_format = '%I:%M%p'
+        now = datetime.strptime(time_of_day, time_format)
+        start = datetime.strptime(start_time, time_format)
+
+        stop = start + timedelta(minutes = duration)
+
+        if (now >= start) and (now < stop):
+            return 1
+        else:
+            return 0
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     greenHouse = GreenHouse()
     greenHouse.read_settings()
+
+    weather_update_timer = QTimer()
+    weather_update_timer.timeout.connect(greenHouse.get_weather)
+    weather_update_timer.start(1000 * 60 * 5)
+
+    controls_zone1_update_timer = QTimer()
+    controls_zone1_update_timer.timeout.connect(greenHouse.update_zone_1_controls)
+    controls_zone1_update_timer.start(1000 * 60 * 1)
+
+    controls_zone2_update_timer = QTimer()
+    controls_zone2_update_timer.timeout.connect(greenHouse.update_zone_2_controls)
+    controls_zone2_update_timer.start(1000 * 60 * 1)
+
+    controls_fan_update_timer = QTimer()
+    controls_fan_update_timer.timeout.connect(greenHouse.update_fan_controls)
+    controls_fan_update_timer.start(1000 * 60 * 1)
 
     greenHouse.show()
     sys.exit(app.exec())
