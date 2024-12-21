@@ -6,8 +6,10 @@ import requests
 import pyqtgraph as pg
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtCore import QTimer
-
 from ui_form import Ui_Widget
+import time
+import board
+import adafruit_dht
 
 class GreenHouse(QWidget):
     def __init__(self, parent=None):
@@ -18,6 +20,7 @@ class GreenHouse(QWidget):
         self.chart_outside_data = []
         self.chart_inside_data = []
         self.settings = {}
+        self.inside_temp = 60
 
         self.ui.water_zone_1_control_pushButton.clicked.connect(self.water_zone_1_clicked)
         self.ui.water_zone_2_control_pushButton.clicked.connect(self.water_zone_2_clicked)
@@ -44,8 +47,16 @@ class GreenHouse(QWidget):
         self.ui.zone2_sat_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_2_sat"))
         self.ui.zone2_sun_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_2_sun"))
 
+        self.temp_plot = self.ui.chart_graphicsView.plot(self.chart_x_data, self.chart_outside_data, pen=pg.mkPen('r', width=4))
+        self.get_weather()
+        self.center_window()
 
-        self.center_window();
+        self.dht_device = adafruit_dht.DHT11(board.D4)
+
+        temp_c = self.dht_device.temperature
+        temp_f = temp_c * (9/5) +32
+        humidity = self.dht_device.humidity
+        print("Temp:{:.1f} C / {:.1f} F  Humidity: {}%".format(temp_c, temp_f, humidity))
 
     def center_window(self):
             # Get the screen geometry
@@ -65,14 +76,15 @@ class GreenHouse(QWidget):
         size_x = len(self.chart_x_data)
         self.chart_outside_data.append(temp)
 
-        self.chart_x_data.append(size_x * 5)
+        if(size_x < 288):
+            self.chart_x_data.append(size_x * 5)
 
-        if(size_x >= 125):
-            self.chart_x_data.pop(0)
+        if(size_x == 288):
             self.chart_outside_data.pop(0)
 
+        self.ui.chart_graphicsView.clear()
         self.ui.chart_graphicsView.plot(self.chart_x_data, self.chart_outside_data, pen=pg.mkPen('r', width=4),name="outside")
-        #self.ui.chart_graphicsView.plot(self.chart_x_data, self.chart_inside_data, pen="blue", name="inside")
+
         self.ui.min_outdoor_temp_label.setStyleSheet("color: red;")
         self.ui.max_outdoor_temp_label.setStyleSheet("color: red;")
         self.ui.min_outdoor_temp_val_label.setStyleSheet("color: red;")
@@ -86,7 +98,6 @@ class GreenHouse(QWidget):
         data = res.json()
         temp = data['main']['temp']
         self.ui.outside_temp_val_label.setText(str(round(temp)) + "F")
-        print("Temperature at " + str(datetime.now()))
         print(temp)
         self.update_graph(temp)
 
@@ -549,7 +560,12 @@ class GreenHouse(QWidget):
                         self.ui.water_zone_2_val_label.setText("OFF")
 
     def update_fan_controls(self):
-        pass
+        if self.inside_temp >= self.settings["fan_temp"]:
+            print("FAN ON")
+            self.ui.fan_status_on_off.setText("ON")
+        else:
+            print("FAN OFF")
+            self.ui.fan_status_on_off.setText("OFF")
 
     def compare_time_strings(self, time_of_day, start_time, duration):
         time_format = '%I:%M%p'

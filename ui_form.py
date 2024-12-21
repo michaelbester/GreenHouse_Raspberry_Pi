@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'form.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.1
+## Created by: Qt User Interface Compiler version 6.8.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -41,7 +41,6 @@ class Ui_Widget(object):
         font.setItalic(False)
         font.setUnderline(False)
         self.title_label.setFont(font)
-        self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.verticalLayoutWidget = QWidget(Widget)
         self.verticalLayoutWidget.setObjectName(u"verticalLayoutWidget")
         self.verticalLayoutWidget.setGeometry(QRect(20, 50, 631, 822))
@@ -59,7 +58,7 @@ class Ui_Widget(object):
         font1.setBold(True)
         font1.setUnderline(True)
         self.controls_label.setFont(font1)
-        self.controls_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.controls_label.setAlignment(Qt.AlignCenter)
 
         self.gridLayout_2.addWidget(self.controls_label, 3, 0, 1, 1)
 
@@ -74,7 +73,7 @@ class Ui_Widget(object):
         font2.setUnderline(True)
         font2.setKerning(True)
         self.status_label.setFont(font2)
-        self.status_label.setAlignment(Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignTop)
+        self.status_label.setAlignment(Qt.AlignCenter)
 
         self.gridLayout_2.addWidget(self.status_label, 1, 0, 1, 1)
 
@@ -158,14 +157,12 @@ class Ui_Widget(object):
         self.outside_temp_val_label.setObjectName(u"outside_temp_val_label")
         self.outside_temp_val_label.setFont(font3)
         self.outside_temp_val_label.setToolTipDuration(2000)
-        self.outside_temp_val_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.status_gridLayout_2.addWidget(self.outside_temp_val_label, 0, 2, 1, 1)
 
         self.water_zone_1_val_label = QLabel(self.verticalLayoutWidget)
         self.water_zone_1_val_label.setObjectName(u"water_zone_1_val_label")
         self.water_zone_1_val_label.setFont(font3)
-        self.water_zone_1_val_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.status_gridLayout_2.addWidget(self.water_zone_1_val_label, 2, 2, 1, 1)
 
@@ -178,14 +175,12 @@ class Ui_Widget(object):
         self.fan_status_on_off = QLabel(self.verticalLayoutWidget)
         self.fan_status_on_off.setObjectName(u"fan_status_on_off")
         self.fan_status_on_off.setFont(font3)
-        self.fan_status_on_off.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.status_gridLayout_2.addWidget(self.fan_status_on_off, 4, 2, 1, 1)
 
         self.water_zone_2_val_label = QLabel(self.verticalLayoutWidget)
         self.water_zone_2_val_label.setObjectName(u"water_zone_2_val_label")
         self.water_zone_2_val_label.setFont(font3)
-        self.water_zone_2_val_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.status_gridLayout_2.addWidget(self.water_zone_2_val_label, 3, 2, 1, 1)
 
@@ -193,7 +188,6 @@ class Ui_Widget(object):
         self.inside_temp_val_label.setObjectName(u"inside_temp_val_label")
         self.inside_temp_val_label.setFont(font3)
         self.inside_temp_val_label.setToolTipDuration(2000)
-        self.inside_temp_val_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.status_gridLayout_2.addWidget(self.inside_temp_val_label, 1, 2, 1, 1)
 
@@ -206,7 +200,6 @@ class Ui_Widget(object):
         self.fan_temp_setting_label = QLabel(self.verticalLayoutWidget)
         self.fan_temp_setting_label.setObjectName(u"fan_temp_setting_label")
         self.fan_temp_setting_label.setFont(font3)
-        self.fan_temp_setting_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         self.status_gridLayout_2.addWidget(self.fan_temp_setting_label, 5, 2, 1, 1)
 
@@ -223,14 +216,14 @@ class Ui_Widget(object):
 
         self.gridLayout_2.addLayout(self.status_gridLayout_2, 2, 0, 1, 1)
 
-        self.verticalSpacer_3 = QSpacerItem(20, 50, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        self.verticalSpacer_3 = QSpacerItem(20, 40, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_2.addItem(self.verticalSpacer_3, 0, 0, 1, 1)
 
 
         self.verticalLayout.addLayout(self.gridLayout_2)
 
-        self.verticalSpacer_4 = QSpacerItem(20, 30, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding)
+        self.verticalSpacer_4 = QSpacerItem(20, 30, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
         self.verticalLayout.addItem(self.verticalSpacer_4)
 
@@ -239,11 +232,11 @@ class Ui_Widget(object):
         self.sched_zone_1_label = QLabel(self.verticalLayoutWidget)
         self.sched_zone_1_label.setObjectName(u"sched_zone_1_label")
         self.sched_zone_1_label.setFont(font1)
-        self.sched_zone_1_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.sched_zone_1_label.setAlignment(Qt.AlignCenter)
 
         self.gridLayout_5.addWidget(self.sched_zone_1_label, 0, 0, 1, 1)
 
-        self.verticalSpacer_5 = QSpacerItem(20, 48, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        self.verticalSpacer_5 = QSpacerItem(20, 48, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_5.addItem(self.verticalSpacer_5, 1, 0, 1, 1)
 
@@ -260,6 +253,9 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone1_mon_pushButton.sizePolicy().hasHeightForWidth())
         self.zone1_mon_pushButton.setSizePolicy(sizePolicy1)
         self.zone1_mon_pushButton.setMinimumSize(QSize(0, 50))
+        font5 = QFont()
+        font5.setPointSize(15)
+        self.zone1_mon_pushButton.setFont(font5)
         self.zone1_mon_pushButton.setCheckable(True)
 
         self.horizontalLayout_2.addWidget(self.zone1_mon_pushButton)
@@ -269,6 +265,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone1_tues_pushButton.sizePolicy().hasHeightForWidth())
         self.zone1_tues_pushButton.setSizePolicy(sizePolicy1)
         self.zone1_tues_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone1_tues_pushButton.setFont(font5)
         self.zone1_tues_pushButton.setCheckable(True)
 
         self.horizontalLayout_2.addWidget(self.zone1_tues_pushButton)
@@ -278,6 +275,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone1_wed_pushButton.sizePolicy().hasHeightForWidth())
         self.zone1_wed_pushButton.setSizePolicy(sizePolicy1)
         self.zone1_wed_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone1_wed_pushButton.setFont(font5)
         self.zone1_wed_pushButton.setCheckable(True)
 
         self.horizontalLayout_2.addWidget(self.zone1_wed_pushButton)
@@ -287,6 +285,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone1_thurs_pushButton.sizePolicy().hasHeightForWidth())
         self.zone1_thurs_pushButton.setSizePolicy(sizePolicy1)
         self.zone1_thurs_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone1_thurs_pushButton.setFont(font5)
         self.zone1_thurs_pushButton.setCheckable(True)
 
         self.horizontalLayout_2.addWidget(self.zone1_thurs_pushButton)
@@ -296,6 +295,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone1_fri_pushButton.sizePolicy().hasHeightForWidth())
         self.zone1_fri_pushButton.setSizePolicy(sizePolicy1)
         self.zone1_fri_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone1_fri_pushButton.setFont(font5)
         self.zone1_fri_pushButton.setCheckable(True)
 
         self.horizontalLayout_2.addWidget(self.zone1_fri_pushButton)
@@ -305,6 +305,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone1_sat_pushButton.sizePolicy().hasHeightForWidth())
         self.zone1_sat_pushButton.setSizePolicy(sizePolicy1)
         self.zone1_sat_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone1_sat_pushButton.setFont(font5)
         self.zone1_sat_pushButton.setCheckable(True)
 
         self.horizontalLayout_2.addWidget(self.zone1_sat_pushButton)
@@ -314,6 +315,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone1_sun_pushButton.sizePolicy().hasHeightForWidth())
         self.zone1_sun_pushButton.setSizePolicy(sizePolicy1)
         self.zone1_sun_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone1_sun_pushButton.setFont(font5)
         self.zone1_sun_pushButton.setCheckable(True)
 
         self.horizontalLayout_2.addWidget(self.zone1_sun_pushButton)
@@ -323,6 +325,10 @@ class Ui_Widget(object):
 
         self.horizontalLayout_3 = QHBoxLayout()
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
+        self.horizontalSpacer_9 = QSpacerItem(10, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer_9)
+
         self.start_time_zone_1_label = QLabel(self.verticalLayoutWidget)
         self.start_time_zone_1_label.setObjectName(u"start_time_zone_1_label")
         self.start_time_zone_1_label.setFont(font3)
@@ -333,10 +339,9 @@ class Ui_Widget(object):
         self.start_time_zone_1_val.setObjectName(u"start_time_zone_1_val")
         sizePolicy1.setHeightForWidth(self.start_time_zone_1_val.sizePolicy().hasHeightForWidth())
         self.start_time_zone_1_val.setSizePolicy(sizePolicy1)
-        font5 = QFont()
-        font5.setPointSize(20)
-        self.start_time_zone_1_val.setFont(font5)
-        self.start_time_zone_1_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        font6 = QFont()
+        font6.setPointSize(20)
+        self.start_time_zone_1_val.setFont(font6)
 
         self.horizontalLayout_3.addWidget(self.start_time_zone_1_val)
 
@@ -349,11 +354,19 @@ class Ui_Widget(object):
 
         self.horizontalLayout_4 = QHBoxLayout()
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
+        self.horizontalSpacer_10 = QSpacerItem(10, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_4.addItem(self.horizontalSpacer_10)
+
         self.duration_zone_1_label = QLabel(self.verticalLayoutWidget)
         self.duration_zone_1_label.setObjectName(u"duration_zone_1_label")
         self.duration_zone_1_label.setFont(font3)
 
         self.horizontalLayout_4.addWidget(self.duration_zone_1_label)
+
+        self.horizontalSpacer_16 = QSpacerItem(30, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_4.addItem(self.horizontalSpacer_16)
 
         self.horizontalSpacer_5 = QSpacerItem(160, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
@@ -363,9 +376,9 @@ class Ui_Widget(object):
         self.duration_zone_1_val.setObjectName(u"duration_zone_1_val")
         sizePolicy1.setHeightForWidth(self.duration_zone_1_val.sizePolicy().hasHeightForWidth())
         self.duration_zone_1_val.setSizePolicy(sizePolicy1)
-        self.duration_zone_1_val.setMinimumSize(QSize(150, 0))
-        self.duration_zone_1_val.setFont(font5)
-        self.duration_zone_1_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.duration_zone_1_val.setMinimumSize(QSize(110, 0))
+        self.duration_zone_1_val.setFont(font6)
+        self.duration_zone_1_val.setAlignment(Qt.AlignCenter)
         self.duration_zone_1_val.setMinimum(1)
 
         self.horizontalLayout_4.addWidget(self.duration_zone_1_val)
@@ -379,7 +392,7 @@ class Ui_Widget(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_4)
 
-        self.verticalSpacer = QSpacerItem(20, 8, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        self.verticalSpacer = QSpacerItem(20, 8, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
         self.verticalLayout.addItem(self.verticalSpacer)
 
@@ -389,7 +402,7 @@ class Ui_Widget(object):
         self.verticalLayout_2 = QVBoxLayout(self.verticalLayoutWidget_2)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
-        self.verticalSpacer_2 = QSpacerItem(20, 50, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        self.verticalSpacer_2 = QSpacerItem(20, 70, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
         self.verticalLayout_2.addItem(self.verticalSpacer_2)
 
@@ -402,7 +415,7 @@ class Ui_Widget(object):
         self.temp_chart_label.setSizePolicy(sizePolicy2)
         self.temp_chart_label.setMaximumSize(QSize(930, 16777215))
         self.temp_chart_label.setFont(font1)
-        self.temp_chart_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.temp_chart_label.setAlignment(Qt.AlignCenter)
 
         self.verticalLayout_2.addWidget(self.temp_chart_label)
 
@@ -413,7 +426,7 @@ class Ui_Widget(object):
         sizePolicy3.setVerticalStretch(0)
         sizePolicy3.setHeightForWidth(self.chart_graphicsView.sizePolicy().hasHeightForWidth())
         self.chart_graphicsView.setSizePolicy(sizePolicy3)
-        self.chart_graphicsView.setMinimumSize(QSize(0, 417))
+        self.chart_graphicsView.setMinimumSize(QSize(0, 400))
 
         self.verticalLayout_2.addWidget(self.chart_graphicsView)
 
@@ -430,19 +443,17 @@ class Ui_Widget(object):
         sizePolicy4.setVerticalStretch(0)
         sizePolicy4.setHeightForWidth(self.min_outdoor_temp_label.sizePolicy().hasHeightForWidth())
         self.min_outdoor_temp_label.setSizePolicy(sizePolicy4)
-        font6 = QFont()
-        font6.setFamilies([u"Tahoma"])
-        font6.setPointSize(15)
-        self.min_outdoor_temp_label.setFont(font6)
-        self.min_outdoor_temp_label.setAlignment(Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignTop)
+        font7 = QFont()
+        font7.setFamilies([u"Tahoma"])
+        font7.setPointSize(15)
+        self.min_outdoor_temp_label.setFont(font7)
 
         self.horizontalLayout.addWidget(self.min_outdoor_temp_label)
 
         self.min_outdoor_temp_val_label = QLabel(self.verticalLayoutWidget_2)
         self.min_outdoor_temp_val_label.setObjectName(u"min_outdoor_temp_val_label")
         self.min_outdoor_temp_val_label.setMaximumSize(QSize(130, 16777215))
-        self.min_outdoor_temp_val_label.setFont(font6)
-        self.min_outdoor_temp_val_label.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
+        self.min_outdoor_temp_val_label.setFont(font7)
 
         self.horizontalLayout.addWidget(self.min_outdoor_temp_val_label)
 
@@ -454,16 +465,14 @@ class Ui_Widget(object):
         self.max_outdoor_temp_label.setObjectName(u"max_outdoor_temp_label")
         sizePolicy4.setHeightForWidth(self.max_outdoor_temp_label.sizePolicy().hasHeightForWidth())
         self.max_outdoor_temp_label.setSizePolicy(sizePolicy4)
-        self.max_outdoor_temp_label.setFont(font6)
-        self.max_outdoor_temp_label.setAlignment(Qt.AlignmentFlag.AlignHCenter|Qt.AlignmentFlag.AlignTop)
+        self.max_outdoor_temp_label.setFont(font7)
 
         self.horizontalLayout.addWidget(self.max_outdoor_temp_label)
 
         self.max_outdoor_temp_val_label = QLabel(self.verticalLayoutWidget_2)
         self.max_outdoor_temp_val_label.setObjectName(u"max_outdoor_temp_val_label")
         self.max_outdoor_temp_val_label.setMaximumSize(QSize(130, 16777215))
-        self.max_outdoor_temp_val_label.setFont(font6)
-        self.max_outdoor_temp_val_label.setAlignment(Qt.AlignmentFlag.AlignLeading|Qt.AlignmentFlag.AlignLeft|Qt.AlignmentFlag.AlignTop)
+        self.max_outdoor_temp_val_label.setFont(font7)
 
         self.horizontalLayout.addWidget(self.max_outdoor_temp_val_label)
 
@@ -487,6 +496,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone2_mon_pushButton.sizePolicy().hasHeightForWidth())
         self.zone2_mon_pushButton.setSizePolicy(sizePolicy1)
         self.zone2_mon_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone2_mon_pushButton.setFont(font5)
         self.zone2_mon_pushButton.setCheckable(True)
 
         self.horizontalLayout_12.addWidget(self.zone2_mon_pushButton)
@@ -496,6 +506,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone2_tues_pushButton.sizePolicy().hasHeightForWidth())
         self.zone2_tues_pushButton.setSizePolicy(sizePolicy1)
         self.zone2_tues_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone2_tues_pushButton.setFont(font5)
         self.zone2_tues_pushButton.setCheckable(True)
 
         self.horizontalLayout_12.addWidget(self.zone2_tues_pushButton)
@@ -505,6 +516,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone2_wed_pushButton.sizePolicy().hasHeightForWidth())
         self.zone2_wed_pushButton.setSizePolicy(sizePolicy1)
         self.zone2_wed_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone2_wed_pushButton.setFont(font5)
         self.zone2_wed_pushButton.setCheckable(True)
 
         self.horizontalLayout_12.addWidget(self.zone2_wed_pushButton)
@@ -514,6 +526,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone2_thurs_pushButton.sizePolicy().hasHeightForWidth())
         self.zone2_thurs_pushButton.setSizePolicy(sizePolicy1)
         self.zone2_thurs_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone2_thurs_pushButton.setFont(font5)
         self.zone2_thurs_pushButton.setCheckable(True)
 
         self.horizontalLayout_12.addWidget(self.zone2_thurs_pushButton)
@@ -523,6 +536,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone2_fri_pushButton.sizePolicy().hasHeightForWidth())
         self.zone2_fri_pushButton.setSizePolicy(sizePolicy1)
         self.zone2_fri_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone2_fri_pushButton.setFont(font5)
         self.zone2_fri_pushButton.setCheckable(True)
 
         self.horizontalLayout_12.addWidget(self.zone2_fri_pushButton)
@@ -532,6 +546,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone2_sat_pushButton.sizePolicy().hasHeightForWidth())
         self.zone2_sat_pushButton.setSizePolicy(sizePolicy1)
         self.zone2_sat_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone2_sat_pushButton.setFont(font5)
         self.zone2_sat_pushButton.setCheckable(True)
 
         self.horizontalLayout_12.addWidget(self.zone2_sat_pushButton)
@@ -541,6 +556,7 @@ class Ui_Widget(object):
         sizePolicy1.setHeightForWidth(self.zone2_sun_pushButton.sizePolicy().hasHeightForWidth())
         self.zone2_sun_pushButton.setSizePolicy(sizePolicy1)
         self.zone2_sun_pushButton.setMinimumSize(QSize(0, 50))
+        self.zone2_sun_pushButton.setFont(font5)
         self.zone2_sun_pushButton.setCheckable(True)
 
         self.horizontalLayout_12.addWidget(self.zone2_sun_pushButton)
@@ -548,12 +564,16 @@ class Ui_Widget(object):
 
         self.gridLayout_10.addLayout(self.horizontalLayout_12, 2, 0, 1, 1)
 
-        self.verticalSpacer_12 = QSpacerItem(20, 40, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
+        self.verticalSpacer_12 = QSpacerItem(20, 40, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
         self.gridLayout_10.addItem(self.verticalSpacer_12, 1, 0, 1, 1)
 
         self.horizontalLayout_13 = QHBoxLayout()
         self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")
+        self.horizontalSpacer_11 = QSpacerItem(10, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_13.addItem(self.horizontalSpacer_11)
+
         self.start_time_zone_2_label = QLabel(self.layoutWidget)
         self.start_time_zone_2_label.setObjectName(u"start_time_zone_2_label")
         self.start_time_zone_2_label.setFont(font3)
@@ -564,8 +584,7 @@ class Ui_Widget(object):
         self.start_time_zone_2_val.setObjectName(u"start_time_zone_2_val")
         sizePolicy1.setHeightForWidth(self.start_time_zone_2_val.sizePolicy().hasHeightForWidth())
         self.start_time_zone_2_val.setSizePolicy(sizePolicy1)
-        self.start_time_zone_2_val.setFont(font5)
-        self.start_time_zone_2_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.start_time_zone_2_val.setFont(font6)
 
         self.horizontalLayout_13.addWidget(self.start_time_zone_2_val)
 
@@ -579,7 +598,7 @@ class Ui_Widget(object):
         self.sched_zone_2_label = QLabel(self.layoutWidget)
         self.sched_zone_2_label.setObjectName(u"sched_zone_2_label")
         self.sched_zone_2_label.setFont(font1)
-        self.sched_zone_2_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.sched_zone_2_label.setAlignment(Qt.AlignCenter)
 
         self.gridLayout_10.addWidget(self.sched_zone_2_label, 0, 0, 1, 1)
 
@@ -591,6 +610,14 @@ class Ui_Widget(object):
 
         self.horizontalLayout_14.addWidget(self.duration_zone_2_label)
 
+        self.horizontalSpacer_17 = QSpacerItem(30, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_14.addItem(self.horizontalSpacer_17)
+
+        self.horizontalSpacer_15 = QSpacerItem(10, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
+
+        self.horizontalLayout_14.addItem(self.horizontalSpacer_15)
+
         self.horizontalSpacer_13 = QSpacerItem(128, 20, QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Minimum)
 
         self.horizontalLayout_14.addItem(self.horizontalSpacer_13)
@@ -599,9 +626,9 @@ class Ui_Widget(object):
         self.duration_zone_2_val.setObjectName(u"duration_zone_2_val")
         sizePolicy1.setHeightForWidth(self.duration_zone_2_val.sizePolicy().hasHeightForWidth())
         self.duration_zone_2_val.setSizePolicy(sizePolicy1)
-        self.duration_zone_2_val.setMinimumSize(QSize(150, 0))
-        self.duration_zone_2_val.setFont(font5)
-        self.duration_zone_2_val.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.duration_zone_2_val.setMinimumSize(QSize(110, 0))
+        self.duration_zone_2_val.setFont(font6)
+        self.duration_zone_2_val.setAlignment(Qt.AlignCenter)
         self.duration_zone_2_val.setMinimum(1)
 
         self.horizontalLayout_14.addWidget(self.duration_zone_2_val)
@@ -627,10 +654,10 @@ class Ui_Widget(object):
         self.save_pushButton.setSizePolicy(sizePolicy1)
         self.save_pushButton.setMinimumSize(QSize(200, 60))
         self.save_pushButton.setMaximumSize(QSize(16777215, 60))
-        font7 = QFont()
-        font7.setPointSize(15)
-        font7.setBold(True)
-        self.save_pushButton.setFont(font7)
+        font8 = QFont()
+        font8.setPointSize(15)
+        font8.setBold(True)
+        self.save_pushButton.setFont(font8)
 
         self.horizontalLayout_5.addWidget(self.save_pushButton)
 
@@ -644,7 +671,7 @@ class Ui_Widget(object):
         self.reset_pushButton.setSizePolicy(sizePolicy1)
         self.reset_pushButton.setMinimumSize(QSize(200, 60))
         self.reset_pushButton.setMaximumSize(QSize(16777215, 60))
-        self.reset_pushButton.setFont(font7)
+        self.reset_pushButton.setFont(font8)
 
         self.horizontalLayout_5.addWidget(self.reset_pushButton)
 
@@ -691,13 +718,13 @@ class Ui_Widget(object):
         self.fan_temp_setting_label.setText(QCoreApplication.translate("Widget", u"??F", None))
         self.fan_status_label.setText(QCoreApplication.translate("Widget", u"FAN:", None))
         self.sched_zone_1_label.setText(QCoreApplication.translate("Widget", u"SCHEDULE - ZONE 1", None))
-        self.zone1_mon_pushButton.setText(QCoreApplication.translate("Widget", u"Monday", None))
-        self.zone1_tues_pushButton.setText(QCoreApplication.translate("Widget", u"Tuesday", None))
-        self.zone1_wed_pushButton.setText(QCoreApplication.translate("Widget", u"Wednesday", None))
-        self.zone1_thurs_pushButton.setText(QCoreApplication.translate("Widget", u"Thursday", None))
-        self.zone1_fri_pushButton.setText(QCoreApplication.translate("Widget", u"Friday", None))
-        self.zone1_sat_pushButton.setText(QCoreApplication.translate("Widget", u"Saturday", None))
-        self.zone1_sun_pushButton.setText(QCoreApplication.translate("Widget", u"Sunday", None))
+        self.zone1_mon_pushButton.setText(QCoreApplication.translate("Widget", u"MON", None))
+        self.zone1_tues_pushButton.setText(QCoreApplication.translate("Widget", u"TUES", None))
+        self.zone1_wed_pushButton.setText(QCoreApplication.translate("Widget", u"WED", None))
+        self.zone1_thurs_pushButton.setText(QCoreApplication.translate("Widget", u"THURS", None))
+        self.zone1_fri_pushButton.setText(QCoreApplication.translate("Widget", u"FRI", None))
+        self.zone1_sat_pushButton.setText(QCoreApplication.translate("Widget", u"SAT", None))
+        self.zone1_sun_pushButton.setText(QCoreApplication.translate("Widget", u"SUN", None))
         self.start_time_zone_1_label.setText(QCoreApplication.translate("Widget", u"START TIME:", None))
         self.duration_zone_1_label.setText(QCoreApplication.translate("Widget", u"DURATION:", None))
         self.duration_zone_1_minutes_label.setText(QCoreApplication.translate("Widget", u"Minutes", None))
@@ -706,13 +733,13 @@ class Ui_Widget(object):
         self.min_outdoor_temp_val_label.setText(QCoreApplication.translate("Widget", u"??F", None))
         self.max_outdoor_temp_label.setText(QCoreApplication.translate("Widget", u"MAX OUTDOOR TEMP:", None))
         self.max_outdoor_temp_val_label.setText(QCoreApplication.translate("Widget", u"??F", None))
-        self.zone2_mon_pushButton.setText(QCoreApplication.translate("Widget", u"Monday", None))
-        self.zone2_tues_pushButton.setText(QCoreApplication.translate("Widget", u"Tuesday", None))
-        self.zone2_wed_pushButton.setText(QCoreApplication.translate("Widget", u"Wednesday", None))
-        self.zone2_thurs_pushButton.setText(QCoreApplication.translate("Widget", u"Thursday", None))
-        self.zone2_fri_pushButton.setText(QCoreApplication.translate("Widget", u"Friday", None))
-        self.zone2_sat_pushButton.setText(QCoreApplication.translate("Widget", u"Saturday", None))
-        self.zone2_sun_pushButton.setText(QCoreApplication.translate("Widget", u"Sunday", None))
+        self.zone2_mon_pushButton.setText(QCoreApplication.translate("Widget", u"MON", None))
+        self.zone2_tues_pushButton.setText(QCoreApplication.translate("Widget", u"TUES", None))
+        self.zone2_wed_pushButton.setText(QCoreApplication.translate("Widget", u"WED", None))
+        self.zone2_thurs_pushButton.setText(QCoreApplication.translate("Widget", u"THURS", None))
+        self.zone2_fri_pushButton.setText(QCoreApplication.translate("Widget", u"FRI", None))
+        self.zone2_sat_pushButton.setText(QCoreApplication.translate("Widget", u"SAT", None))
+        self.zone2_sun_pushButton.setText(QCoreApplication.translate("Widget", u"SUN", None))
         self.start_time_zone_2_label.setText(QCoreApplication.translate("Widget", u"START TIME:", None))
         self.sched_zone_2_label.setText(QCoreApplication.translate("Widget", u"SCHEDULE - ZONE 2", None))
         self.duration_zone_2_label.setText(QCoreApplication.translate("Widget", u"DURATION:", None))
