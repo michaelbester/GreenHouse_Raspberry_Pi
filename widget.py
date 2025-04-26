@@ -1,4 +1,5 @@
-# This Python file uses the following encoding: utf-8
+
+#!/usr/bin/python3
 import sys
 import json
 from datetime import datetime, timedelta
@@ -10,6 +11,19 @@ from ui_form import Ui_Widget
 import time
 import board
 import adafruit_dht
+import RPi.GPIO as GPIO
+
+LED_FAN = 10
+FAN_GPIO_PIN = 10
+
+LED_WATER_1_GPIO_PIN = 7
+LED_WATER_2_GPIO_PIN = 11
+
+SOLENOID_1A_GPIO_PIN = 3
+SOLENOID_1B_GPIO_PIN = 18
+
+SOLENOID_2A_GPIO_PIN = 23
+SOLENOID_2B_GPIO_PIN = 24
 
 class GreenHouse(QWidget):
     def __init__(self, parent=None):
@@ -19,8 +33,8 @@ class GreenHouse(QWidget):
         self.chart_x_data = []
         self.chart_outside_data = []
         self.chart_inside_data = []
-        self.settings = {}
         self.inside_temp = 60
+        self.settings = {}
 
         self.ui.water_zone_1_control_pushButton.clicked.connect(self.water_zone_1_clicked)
         self.ui.water_zone_2_control_pushButton.clicked.connect(self.water_zone_2_clicked)
@@ -47,16 +61,31 @@ class GreenHouse(QWidget):
         self.ui.zone2_sat_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_2_sat"))
         self.ui.zone2_sun_pushButton.clicked.connect(lambda: self.zone1_en_clicked("zone_2_sun"))
 
+        self.old_indoor_temp = 0
+        self.dht_device = adafruit_dht.DHT11(board.D4)
         self.temp_plot = self.ui.chart_graphicsView.plot(self.chart_x_data, self.chart_outside_data, pen=pg.mkPen('r', width=4))
-        self.get_weather()
+        #self.get_weather()
         self.center_window()
 
-        self.dht_device = adafruit_dht.DHT11(board.D4)
+        GPIO.setup(LED_WATER_1_GPIO_PIN, GPIO.OUT)
+        GPIO.setup(LED_WATER_2_GPIO_PIN, GPIO.OUT)
+        GPIO.setup(LED_FAN.GPIO_PIN, GPIO.OUT)
 
-        temp_c = self.dht_device.temperature
-        temp_f = temp_c * (9/5) +32
-        humidity = self.dht_device.humidity
-        print("Temp:{:.1f} C / {:.1f} F  Humidity: {}%".format(temp_c, temp_f, humidity))
+        GPIO.setup(SOLENOID_1A_GPIO_PIN, GPIO.OUT)
+        GPIO.setup(SOLENOID_1B_GPIO_PIN, GPIO.OUT)
+
+        GPIO.setup(SOLENOID_2A_GPIO_PIN, GPIO.OUT)
+        GPIO.setup(SOLENOID_2B_GPIO_PIN, GPIO.OUT)
+
+        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+        GPIO.output(LED_FAN.GPIO_PIN, False)
+
+        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+
+        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
 
     def center_window(self):
             # Get the screen geometry
@@ -72,34 +101,49 @@ class GreenHouse(QWidget):
             # Move the window to the center
             self.move(center_x, center_y)
 
-    def update_graph(self, temp):
+    def update_graph(self, temp_outside, temp_inside):
         size_x = len(self.chart_x_data)
-        self.chart_outside_data.append(temp)
+        self.chart_outside_data.append(temp_outside)
+        self.chart_inside_data.append(temp_inside)
 
         if(size_x < 288):
             self.chart_x_data.append(size_x * 5)
 
         if(size_x == 288):
             self.chart_outside_data.pop(0)
+            self.chart_inside_data.pop(0)
 
         self.ui.chart_graphicsView.clear()
         self.ui.chart_graphicsView.plot(self.chart_x_data, self.chart_outside_data, pen=pg.mkPen('r', width=4),name="outside")
+        self.ui.chart_graphicsView.plot(self.chart_x_data, self.chart_inside_data, pen=pg.mkPen('b', width=4),name="inside")
 
-        self.ui.min_outdoor_temp_label.setStyleSheet("color: red;")
-        self.ui.max_outdoor_temp_label.setStyleSheet("color: red;")
-        self.ui.min_outdoor_temp_val_label.setStyleSheet("color: red;")
-        self.ui.max_outdoor_temp_val_label.setStyleSheet("color: red;")
-        self.ui.min_outdoor_temp_val_label.setText(str(round(min(self.chart_outside_data))) + "F")
-        self.ui.max_outdoor_temp_val_label.setText(str(round(max(self.chart_outside_data))) + "F")
+        self.ui.min_indoor_temp_label.setStyleSheet("color: green;")
+        self.ui.max_indoor_temp_label.setStyleSheet("color: green;")
+        self.ui.min_indoor_temp_val_label.setStyleSheet("color: green;")
+        self.ui.max_indoor_temp_val_label.setStyleSheet("color: green;")
+        self.ui.min_indoor_temp_val_label.setText(str(round(min(self.chart_inside_data))) + "F")
+        self.ui.max_indoor_temp_val_label.setText(str(round(max(self.chart_inside_data))) + "F")
 
     def get_weather(self):
         url = 'http://api.openweathermap.org/data/2.5/weather?q={}&appid=ce1c9c671cdba754b71c0526e8667ff3&units=imperial'.format("Pickens")
         res = requests.get(url)
         data = res.json()
-        temp = data['main']['temp']
-        self.ui.outside_temp_val_label.setText(str(round(temp)) + "F")
-        print(temp)
-        self.update_graph(temp)
+        outside_temp = data['main']['temp']
+        self.ui.outside_temp_val_label.setText(str(round(outside_temp)) + "F")
+        print(datetime.now())
+        print(outside_temp)
+
+        try:
+            inside_temp_c = self.dht_device.temperature
+            inside_temp = inside_temp_c * (9/5) +32
+            #humidity = self.dht_device.humidity
+        except:
+            print("DHT11 Read Failure!")
+            inside_temp = self.old_inside_temp
+
+        self.old_inside_temp = inside_temp
+        self.ui.inside_temp_val_label.setText(str(int(inside_temp)) + "F")
+        self.update_graph(outside_temp, inside_temp)
 
     def water_zone_1_clicked(self):
         if self.ui.water_zone_1_control_pushButton.text() == "TURN OFF":
@@ -428,66 +472,211 @@ class GreenHouse(QWidget):
         match day_of_week:
             case "Monday":
                 if self.ui.zone1_mon_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_1_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_1_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_1_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_1_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                elif (self.ui.water_zone_1_val_label.text != "OFF") and (self.ui.water_zone_1_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
 
             case "Tuesday":
                 if self.ui.zone1_tues_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_1_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_1_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_1_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_1_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                elif (self.ui.water_zone_1_val_label.text != "OFF") and (self.ui.water_zone_1_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
 
             case "Wednesday":
                 if self.ui.zone1_wed_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_1_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_1_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_1_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_1_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                elif (self.ui.water_zone_1_val_label.text != "OFF") and (self.ui.water_zone_1_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
 
             case "Thursday":
                 if self.ui.zone1_thurs_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_1_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_1_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_1_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_1_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                elif (self.ui.water_zone_1_val_label.text != "OFF") and (self.ui.water_zone_1_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+
 
             case "Friday":
                 if self.ui.zone1_fri_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_1_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_1_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_1_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_1_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                elif (self.ui.water_zone_1_val_label.text != "OFF") and (self.ui.water_zone_1_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+
 
             case "Saturday":
                 if self.ui.zone1_sat_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_1_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_1_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_1_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_1_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                elif (self.ui.water_zone_1_val_label.text != "OFF") and (self.ui.water_zone_1_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+
 
             case "Sunday":
                 if self.ui.zone1_sun_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_1_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_1_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_1_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_1_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+                elif (self.ui.water_zone_1_val_label.text != "OFF") and (self.ui.water_zone_1_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_1_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_1_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+
 
     def update_zone_2_controls(self):
         start_time = self.settings["zone_2_start_time"]
@@ -498,74 +687,215 @@ class GreenHouse(QWidget):
         match day_of_week:
             case "Monday":
                 if self.ui.zone2_mon_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_2_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_2_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_2_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_2_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_2_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                elif (self.ui.water_zone_2_val_label.text != "OFF") and (self.ui.water_zone_2_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_2_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+
 
             case "Tuesday":
                 if self.ui.zone2_tues_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_2_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_2_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_2_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_2_val_label.text != "OFF"):
                         #turn off water
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
                         self.ui.water_zone_2_val_label.setText("OFF")
-
+                elif (self.ui.water_zone_2_val_label.text != "OFF") and (self.ui.water_zone_2_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_2_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
             case "Wednesday":
                 if self.ui.zone2_wed_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_2_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_2_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_2_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_2_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_2_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                elif (self.ui.water_zone_2_val_label.text != "OFF") and (self.ui.water_zone_2_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_2_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
 
             case "Thursday":
                 if self.ui.zone2_thurs_pushButton.isChecked() == True:
                     if self.compare_time_strings(time_of_day, start_time, duration) == 1:
                         #turn on water
                         self.ui.water_zone_2_val_label.setText("ON")
+                        GPIO.output(LED_WATER_2_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
                     else:
                         #turn off water
                         self.ui.water_zone_2_val_label.setText("OFF")
-
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                elif (self.ui.water_zone_2_val_label.text != "OFF") and (self.ui.water_zone_2_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_2_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
             case "Friday":
                 if self.ui.zone2_fri_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_2_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_2_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_2_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_2_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_2_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                elif (self.ui.water_zone_2_val_label.text != "OFF") and (self.ui.water_zone_2_control_pushButton.text() == "TURN ON"):
+                        self.ui.water_zone_2_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
 
             case "Saturday":
                 if self.ui.zone2_sat_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_2_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_2_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_2_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_2_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_2_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                    elif (self.ui.water_zone_2_val_label.text != "OFF") and (self.ui.water_zone_2_control_pushButton.text() == "TURN ON"):
+                            self.ui.water_zone_2_val_label.setText("OFF")
+                            GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                            GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                            GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                            time.sleep(0.1)
+                            GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                            GPIO.output(SOLENOID_2B_GPIO_PIN, False)
 
             case "Sunday":
                 if self.ui.zone2_sun_pushButton.isChecked() == True:
-                    if self.compare_time_strings(time_of_day, start_time, duration) == 1:
+                    if (self.compare_time_strings(time_of_day, start_time, duration) == 1) and (self.ui.water_zone_2_val_label.text != "ON"):
                         #turn on water
                         self.ui.water_zone_2_val_label.setText("ON")
-                    else:
+                        GPIO.output(LED_WATER_2_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, True)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                    elif (self.compare_time_strings(time_of_day, start_time, duration) != 1) and (self.ui.water_zone_2_val_label.text != "OFF"):
                         #turn off water
                         self.ui.water_zone_2_val_label.setText("OFF")
+                        GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                        time.sleep(0.1)
+                        GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                        GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+                    elif (self.ui.water_zone_2_val_label.text != "OFF") and (self.ui.water_zone_2_control_pushButton.text() == "TURN ON"):
+                            self.ui.water_zone_2_val_label.setText("OFF")
+                            GPIO.output(LED_WATER_2_GPIO_PIN, False)
+                            GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                            GPIO.output(SOLENOID_2B_GPIO_PIN, True)
+                            time.sleep(0.1)
+                            GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+                            GPIO.output(SOLENOID_2B_GPIO_PIN, False)
 
     def update_fan_controls(self):
-        if self.inside_temp >= self.settings["fan_temp"]:
+        if (self.inside_temp >= self.settings["fan_temp"]) and (self.ui.fan_status_on_off.text != "ON"):
             print("FAN ON")
             self.ui.fan_status_on_off.setText("ON")
-        else:
+            GPIO.output(FAN_GPIO_PIN, True)
+        elif self.inside_temp <= (self.settings["fan_temp"] - 2) and (self.ui.fan_status_on_off.text != "OFF"):
             print("FAN OFF")
             self.ui.fan_status_on_off.setText("OFF")
+            GPIO.output(FAN_GPIO_PIN, False)
 
     def compare_time_strings(self, time_of_day, start_time, duration):
         time_format = '%I:%M%p'
@@ -581,6 +911,7 @@ class GreenHouse(QWidget):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    GPIO.setmode(GPIO.BCM)
     greenHouse = GreenHouse()
     greenHouse.read_settings()
 
@@ -590,15 +921,15 @@ if __name__ == "__main__":
 
     controls_zone1_update_timer = QTimer()
     controls_zone1_update_timer.timeout.connect(greenHouse.update_zone_1_controls)
-    controls_zone1_update_timer.start(1000 * 60 * 1)
+    controls_zone1_update_timer.start(1000 * 10 * 1)
 
     controls_zone2_update_timer = QTimer()
     controls_zone2_update_timer.timeout.connect(greenHouse.update_zone_2_controls)
-    controls_zone2_update_timer.start(1000 * 60 * 1)
+    controls_zone2_update_timer.start(1000 * 10 * 1)
 
     controls_fan_update_timer = QTimer()
     controls_fan_update_timer.timeout.connect(greenHouse.update_fan_controls)
-    controls_fan_update_timer.start(1000 * 60 * 1)
+    controls_fan_update_timer.start(1000 * 10 * 1)
 
     greenHouse.show()
     sys.exit(app.exec())
