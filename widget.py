@@ -13,7 +13,7 @@ import board
 import adafruit_dht
 import RPi.GPIO as GPIO
 
-LED_FAN = 10
+LED_FAN_GPIO_PIN = 10
 FAN_GPIO_PIN = 10
 
 LED_WATER_1_GPIO_PIN = 7
@@ -67,9 +67,10 @@ class GreenHouse(QWidget):
         #self.get_weather()
         self.center_window()
 
+        GPIO.cleanup()
         GPIO.setup(LED_WATER_1_GPIO_PIN, GPIO.OUT)
         GPIO.setup(LED_WATER_2_GPIO_PIN, GPIO.OUT)
-        GPIO.setup(LED_FAN.GPIO_PIN, GPIO.OUT)
+        GPIO.setup(LED_FAN_GPIO_PIN, GPIO.OUT)
 
         GPIO.setup(SOLENOID_1A_GPIO_PIN, GPIO.OUT)
         GPIO.setup(SOLENOID_1B_GPIO_PIN, GPIO.OUT)
@@ -79,7 +80,7 @@ class GreenHouse(QWidget):
 
         GPIO.output(LED_WATER_1_GPIO_PIN, False)
         GPIO.output(LED_WATER_2_GPIO_PIN, False)
-        GPIO.output(LED_FAN.GPIO_PIN, False)
+        GPIO.output(LED_FAN_GPIO_PIN, False)
 
         GPIO.output(SOLENOID_1A_GPIO_PIN, False)
         GPIO.output(SOLENOID_1B_GPIO_PIN, False)
@@ -131,15 +132,15 @@ class GreenHouse(QWidget):
         outside_temp = data['main']['temp']
         self.ui.outside_temp_val_label.setText(str(round(outside_temp)) + "F")
         print(datetime.now())
-        print(outside_temp)
 
-        try:
-            inside_temp_c = self.dht_device.temperature
-            inside_temp = inside_temp_c * (9/5) +32
-            #humidity = self.dht_device.humidity
-        except:
-            print("DHT11 Read Failure!")
-            inside_temp = self.old_inside_temp
+        while True:
+            try:
+                inside_temp_c = self.dht_device.temperature
+                inside_temp = inside_temp_c * (9/5) +32
+                #humidity = self.dht_device.humidity
+                break;
+            except:
+                print("DHT11 Read Failure!")
 
         self.old_inside_temp = inside_temp
         self.ui.inside_temp_val_label.setText(str(int(inside_temp)) + "F")
@@ -149,30 +150,52 @@ class GreenHouse(QWidget):
         if self.ui.water_zone_1_control_pushButton.text() == "TURN OFF":
             self.ui.water_zone_1_control_pushButton.setText("TURN ON")
             self.ui.water_zone_1_val_label.setText("OFF")
+            GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+            GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+            GPIO.output(LED_WATER_1_GPIO_PIN, False)
             controls_zone1_update_timer.start(1000 * 60 * 1)
         else:
             self.ui.water_zone_1_control_pushButton.setText("TURN OFF")
             self.ui.water_zone_1_val_label.setText("ON")
-            #turn on water
+            GPIO.output(LED_WATER_1_GPIO_PIN, True)
+            GPIO.output(SOLENOID_1A_GPIO_PIN, True)
+            GPIO.output(SOLENOID_1B_GPIO_PIN, False)
+            time.sleep(0.1)
+            GPIO.output(SOLENOID_1A_GPIO_PIN, False)
+            GPIO.output(SOLENOID_1B_GPIO_PIN, False)
             controls_zone1_update_timer.stop()
 
     def water_zone_2_clicked(self):
         if self.ui.water_zone_2_control_pushButton.text() == "TURN OFF":
             self.ui.water_zone_2_control_pushButton.setText("TURN ON")
             self.ui.water_zone_2_val_label.setText("OFF")
+            GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+            GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+            GPIO.output(LED_WATER_2_GPIO_PIN, False)
             controls_zone2_update_timer.start(1000 * 60 * 1)
         else:
             self.ui.water_zone_2_control_pushButton.setText("TURN OFF")
             self.ui.water_zone_2_val_label.setText("ON")
+            GPIO.output(LED_WATER_2_GPIO_PIN, True)
+            GPIO.output(SOLENOID_2A_GPIO_PIN, True)
+            GPIO.output(SOLENOID_2B_GPIO_PIN, False)
+            time.sleep(0.1)
+            GPIO.output(SOLENOID_2A_GPIO_PIN, False)
+            GPIO.output(SOLENOID_2B_GPIO_PIN, False)
             controls_zone1_update_timer.stop
 
     def fan_clicked(self):
         if self.ui.fan_control_pushButton.text() == "TURN OFF":
             self.ui.fan_control_pushButton.setText("TURN ON")
             self.ui.fan_status_on_off.setText("OFF")
+            GPIO.output(LED_FAN_GPIO_PIN, False)
+            GPIO.output(FAN_GPIO_PIN, False)
+
         else:
             self.ui.fan_control_pushButton.setText("TURN OFF")
             self.ui.fan_status_on_off.setText("ON")
+            GPIO.output(LED_FAN_GPIO_PIN, True)
+            GPIO.output(FAN_GPIO_PIN, True)
 
 
     def zone1_en_clicked(self, name):
